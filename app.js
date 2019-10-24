@@ -1,5 +1,35 @@
 ﻿const addTask = document.querySelector('.add');
 const list = document.querySelector('.todos');
+const search = document.querySelector('.search input');
+
+// ########## 追加 ###########
+(function(){
+    // 初期化処理
+    // ローカルストレージに格納されている値を取得し、リストを生成する
+    for(var key in localStorage){
+        var html = localStorage.getItem(key);
+        if (html) {
+            list.innerHTML += localStorage.getItem(key);
+        }
+    }
+})();
+
+const saveTaskToLocalStorage = (task, html) => {
+    // null は、localStorage に保存しない
+    if(html){
+        // localStorage は、0 から始まる
+        localStorage.setItem(task, html);
+        return;
+    }
+    return;
+}
+
+const deleteTaskFromLocalStorage = task => {
+    localStorage.removeItem(task);
+    return;
+}
+
+// ###############################
 
 const createTodoList = task => {
     // HTML テンプレートを生成
@@ -11,6 +41,8 @@ const createTodoList = task => {
     `;
 
     list.innerHTML += html;
+    // ########## 追加 ###########
+    saveTaskToLocalStorage(task, html); 
 }
 
 addTask.addEventListener('submit', e => {
@@ -25,4 +57,31 @@ addTask.addEventListener('submit', e => {
         // タスクに入力した文字をクリア
         addTask.reset();
     }
+});
+
+// 削除機能
+list.addEventListener('click', e => {
+    if (e.target.classList.contains('delete')){
+        e.target.parentElement.remove();
+        // ########## 追加 ###########
+        const task = e.target.parentElement.textContent.trim()
+        deleteTaskFromLocalStorage(task);
+    }
+});
+
+const filterTasks = (term) => {
+
+    Array.from(list.children)
+        .filter((todo) => !todo.textContent.toLowerCase().includes(term))
+        .forEach((todo) => todo.classList.add('filtered'));
+
+    Array.from(list.children)
+        .filter((todo) => todo.textContent.toLowerCase().includes(term))
+        .forEach((todo) => todo.classList.remove('filtered'));
+};
+
+search.addEventListener('keyup', () => {
+    // 空白削除かつ、小文字に変換(大文字・小文字の区別をなくす)
+    const term = search.value.trim().toLowerCase();
+    filterTasks(term);
 });
